@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secure-alpine-demo
+  labels:
+    app: secure-alpine-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secure-alpine-demo
+  template:
+    metadata:
+      labels:
+        app: secure-alpine-demo
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001  # This should match your Dockerfile UID
+      containers:
+        - name: alpine
+          image: ciaa/demo_app:v1.11.0 # LATEST_IMAGE_TAG
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: STARTUP_MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: alpine-demo-config
+                  key: STARTUP_MESSAGE
+            - name: SLEEP_DURATION
+              value: "7200"
+            - name: PASS1
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: PASS1
+            - name: PASS2
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: PASS2
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "test -f ./entrypoint.sh"]
+            initialDelaySeconds: 3
+            periodSeconds: 10

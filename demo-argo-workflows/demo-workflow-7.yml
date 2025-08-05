@@ -1,0 +1,77 @@
+# Dynamic workflow dag example
+# This workflow generates a list of dates between two given dates and processes each date in parallel.
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: dynamic-dag
+  namespace: playground
+spec:
+  serviceAccountName: playground-sa
+  entrypoint: dynamic-dag
+  templates:
+  - name: dynamic-dag
+    dag:
+      tasks:
+
+      - name: date-generator
+        template: date-generator
+        arguments:
+          parameters:
+           - name: start-dt
+             value: "2023-12-20"
+           - name: end-dt
+             value: "2024-01-12"
+
+      - name: data-processing
+        depends: "date-generator"
+        template: whalesay
+        arguments:
+            parameters:
+            - name: message
+              value: "{{item.partition}}"
+        withParam: "{{tasks.date-generator.outputs.parameters.generated_dates}}"
+
+      - name: processing-done
+        depends: "data-processing"
+        template: whalesay
+        arguments:
+          parameters:
+          - name: message
+            value: "done!"
+
+
+  - name: date-generator
+    inputs:
+      parameters:
+        - name: start-dt
+        - name: end-dt
+    script:
+      image: python:alpine3.6
+      command: [ python ]
+      source: |
+        import json
+        import sys
+        from datetime import datetime, timedelta
+
+        startDt = datetime.strptime("{{inputs.parameters.start-dt}}", "%Y-%m-%d")
+        endDt = datetime.strptime("{{inputs.parameters.end-dt}}", "%Y-%m-%d")
+        delta = (endDt - startDt).days
+        out_file = open("generated_dates.json", "w")
+        json.dump([{"partition": (startDt + timedelta(days=i)).strftime('%Y-%m-%d')} for i in range(delta+1)], out_file)
+        out_file.close()
+    outputs:
+      parameters:
+        - name: generated_dates
+          valueFrom:
+            default: "set date"
+            path: generated_dates.json
+          globalName: generated_dates
+
+  - name: whalesay
+    inputs:
+      parameters:
+      - name: message
+    container:
+      image: docker/whalesay:latest
+      command: [cowsay]
+      args: ["{{inputs.parameters.message}}"]
