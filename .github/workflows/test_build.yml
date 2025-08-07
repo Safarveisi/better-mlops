@@ -128,8 +128,8 @@ jobs:
                 IMG_TAG_TEST="ciaa/demo_app:${{ needs.version-check.outputs.project_version }}-test"
                 # Build locally (loads the single-platform build result to docker images)
                 docker buildx build --platform linux/amd64 --load --tag "$IMG_TAG_TEST" .
-                # This is a smoke test to ensure the image can be built and run
-                docker run --rm "$IMG_TAG_TEST"
+                # This is a smoke test to ensure the image can run without issues
+                docker run -e SLEEP_DURATION=1 --rm "$IMG_TAG_TEST"
 
             - name: Build and push
               id: docker-image-build-and-push
