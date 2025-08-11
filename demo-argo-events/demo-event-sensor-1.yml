@@ -76,10 +76,6 @@ spec:
                              from: "{{tasks.clone-my-repo.outputs.artifacts.poetry-file}}"
                         dependencies: [clone-my-repo]
 
-                      - name: mlflow-connect
-                        template: list-mlflow-experiments
-                        dependencies: [print-body-message]
-
                       - name: snowflake-connect
                         template: snowflake-table
                         dependencies: [print-body-message]
@@ -166,18 +162,6 @@ spec:
                     image: alpine:latest
                     command: [sh, -c]
                     args: ["cat /tmp/pyproject"]
-
-                # Connecting to internal services (mlflow and snowflake)
-                - name: list-mlflow-experiments
-                  container:
-                    image: ciaa/mlflow-connect:latest
-                    imagePullPolicy: Always
-                    env:
-                      - name: MLFLOW_TRACKING_URI
-                        valueFrom:
-                          secretKeyRef:
-                            name: mlflow-credentials
-                            key: MLFLOW_TRACKING_URI
 
                 - name: snowflake-table
                   container:
