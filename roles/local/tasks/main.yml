@@ -1,0 +1,17 @@
+- name: Create a namespace for Argo CD
+  kubernetes.core.k8s:
+    name: testing
+    state: present
+    kind: Namespace
+
+- name: Download ArgoCD's installation manifest file
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+    dest: ./argo-cd-install.yaml
+    mode: '0664'
+
+- name: Apply the ArgoCD manifest file
+  kubernetes.core.k8s:
+    src: ./argo-cd-install.yaml
+    state: present
+    namespace: testing
