@@ -1,17 +1,54 @@
 - name: Create a namespace for Argo CD
   kubernetes.core.k8s:
-    name: testing
+    name: argocd
     state: present
     kind: Namespace
+  tags: install-argocd
 
 - name: Download ArgoCD's installation manifest file
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
     dest: ./argo-cd-install.yaml
-    mode: '0664'
+    mode: '0644'
+  tags: install-argocd
 
 - name: Apply the ArgoCD manifest file
   kubernetes.core.k8s:
     src: ./argo-cd-install.yaml
     state: present
-    namespace: testing
+    namespace: argocd
+  tags: install-argocd
+
+- name: Sleep for 20 seconds and continue with play
+  ansible.builtin.wait_for:
+    timeout: 20
+  tags: status-argocd
+
+- name: Get a list of all pod objects
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: argocd
+  register: pod_list
+  tags: status-argocd
+
+- name: Check if all pods are in 'Running'
+  ansible.builtin.set_fact:
+    all_running: "{{ pod_list.resources | map(attribute='status.phase') | list | select('equalto', 'Running') | list | length == pod_list.resources | length }}"
+  tags: status-argocd
+
+- name: Print pod status and fail if not all are running
+  ansible.builtin.debug:
+    msg: >-
+      {%- if all_running -%}
+        All pods are in 'Running' state.
+      {%- else -%}
+        Not all pods are running!
+      {%- endif -%}
+  tags: status-argocd
+
+- name: Fail play if not all pods are running
+  ansible.builtin.fail:
+    msg: "Not all pods are in 'Running' state."
+  when: not all_running
+  tags: status-argocd
