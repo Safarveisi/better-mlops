@@ -1,6 +1,6 @@
 [project]
 name = "better-mlops"
-version = "1.14.0"
+version = "1.15.0"
 description = ""
 authors = [
     {name = "Safarveisi",email = "sajad.safarveisi@gmail.com"}
@@ -9,6 +9,9 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "pyyaml (>=6.0.2,<7.0.0)",
+    "kubernetes (>=33.1.0,<34.0.0)",
+    "jsonpath (>=0.82.2,<0.83.0)"
 ]
 
 [tool.poetry]

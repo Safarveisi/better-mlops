@@ -1,0 +1,6 @@
+- name: Kubernetes Playbook
+  hosts: localhost
+  gather_facts: true
+
+  roles:
+    - local

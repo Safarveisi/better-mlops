@@ -132,3 +132,8 @@ STEP                     TEMPLATE                 PODNAME                       
 **This example has nothing to do with the graph shown above.**
 
 You can also see some demos for Argo workflows in `/demo-argo-workflows` with some of them taken directly from the git repository for the [Argo workflows](https://github.com/argoproj/argo-workflows/tree/main/examples).
+
+
+### Ansible
+
+To automate installing `ArgoCD`, `Argo Events` and `Argo workflows` on any k8s cluster, I use Ansible. Please see `playbook.yml` (core `2.17.13`) as well as its associated roles directory for the Ansible tasks and variables.
