@@ -1,6 +1,6 @@
 [project]
 name = "better-mlops"
-version = "1.16.0"
+version = "1.17.0"
 description = ""
 authors = [
     {name = "Safarveisi",email = "sajad.safarveisi@gmail.com"}
