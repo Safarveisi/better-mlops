@@ -1,6 +1,17 @@
+- name: Check whether the target k8s namespace is defined
+  ansible.builtin.assert:
+    that:
+      - k8s_namespace is defined
+  tags: install-argocd
+
+- name: Print the k8s namespace
+  ansible.builtin.debug:
+    msg: "The ArgoCD will be installed in {{ k8s_namespace }} namespace."
+  tags: install-argocd
+
 - name: Create a namespace for Argo CD
   kubernetes.core.k8s:
-    name: argocd
+    name: "{{ k8s_namespace }}"
     state: present
     kind: Namespace
   tags: install-argocd
@@ -16,7 +27,7 @@
   kubernetes.core.k8s:
     src: ./argo-cd-install.yaml
     state: present
-    namespace: argocd
+    namespace: "{{ k8s_namespace }}"
   tags: install-argocd
 
 - name: Sleep for 20 seconds and continue with play
@@ -28,7 +39,7 @@
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Pod
-    namespace: argocd
+    namespace: "{{ k8s_namespace }}"
   register: pod_list
   tags: status-argocd
 
@@ -58,7 +69,7 @@
     api_version: v1
     kind: Service
     name: argocd-server
-    namespace: argocd
+    namespace: "{{ k8s_namespace }}"
     patch:
       - op: replace
         path: /spec/type
