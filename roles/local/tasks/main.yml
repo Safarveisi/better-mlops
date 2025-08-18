@@ -52,3 +52,15 @@
     msg: "Not all pods are in 'Running' state."
   when: not all_running
   tags: status-argocd
+
+- name: Flip argocd-server to a LoadBalancer in the argocd namespace
+  kubernetes.core.k8s_json_patch:
+    api_version: v1
+    kind: Service
+    name: argocd-server
+    namespace: argocd
+    patch:
+      - op: replace
+        path: /spec/type
+        value: LoadBalancer
+  tags: expose-ui
